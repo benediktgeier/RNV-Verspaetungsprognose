@@ -1,0 +1,357 @@
+{
+	"info": {
+		"_postman_id": "9b52408a-38a9-4503-a8be-927b7287a170",
+		"name": "Data Hub API",
+		"description": "How-To Beispiele als Postman Collection.\n\nVerwendung:\n\nPostman Environment anlegen und folgende Einträge hinterlegen:\n\n - clientID\n - tenantID\n - clientSecret\n - resource\n - hostname\n\n\nSiehe auch https://github.com/Rhein-Neckar-Verkehr/Data-Hub-API-How-To#voraussetzungen \n\nDie Authentifizierung muss je nach Gültigkeit des Bearer-Tokens ausgeführt werden. Der Token wird dann in einer Globalen Variable in Postman gespeichert. Dann können die restlichen Beispiele ausgeführt werden.\n\nAusführliche Erläuterungen und Beispiele zur Pagination finden Sie im Hauptdokument https://github.com/Rhein-Neckar-Verkehr/Data-Hub-API-How-To.\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authorization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3a9c790d-e3ef-445e-9d99-5dc62066d07b",
+						"exec": [
+							"pm.globals.set(\"bearerToken\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{clientID}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{clientSecret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{resource}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenantID}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenantID}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Suche nach Haltestellen",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{bearerToken}}"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  # stations(first: 3 lat:49.483076 long:8.468409 distance:0.5) {\n      \n  ## Sollte in dieser Form normalerweise alle Haltestellen zurückgeben\n  stations(first: 1000 lat:49.483076 long:8.468409 distance:1000) {\n    totalCount\n    elements {\n      ... on Station {\n        hafasID\n        # globalID\n        longName\n      }\n    }\n  }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		},
+		{
+			"name": "Alle Haltestellen bekommen",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{bearerToken}}"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  ## Sollte in dieser Form normalerweise alle Haltestellen zurückgeben mit deren Infos\n  stations (first:2000 lat:49.483076 long:8.468409 distance:1000) {\n    totalCount\n    elements {\n      ... on Station {\n        hafasID\n        longName\n        # shortName   # nicht relevant\n        # name\n        \n        ## Problem: führt zu Security Profile Violation -> anscheinend gehen nicht alle Stationen auf einmal\n        ## Anzahl an Steigen und Steiginfos bekommen\n        platforms {\n            totalCount\n            elements {\n                ... on Platform {\n                    label\n                    type              # STEIG\n                    barrierFreeType   # RAMP / LEVEL / NONE\n                }\n            }\n        }\n      }\n    }\n  }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		},
+		{
+			"name": "Abfrage einer Haltestelle",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{bearerToken}}"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  station(id:\"2457\") {\n    hafasID\n    longName\n    # shortName   # nicht relevant\n    name\n    \n    ## Anzahl an Steigen und Steiginfos bekommen\n    platforms {\n        totalCount\n        elements {\n            ... on Platform {\n                label\n                type              # STEIG\n                barrierFreeType   # RAMP / LEVEL / NONE\n            }\n        }\n    }\n  }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		},
+		{
+			"name": "Erstellung eines Abfahrtsmonitors",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearerToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query($stationId: String!, $startTime: String!, $endTime: String!){\n  ## Wähle eine spezielle Station aus, am Ende vermutlich die Enhaltestellen relevant\n  station(id: $stationId) {\n    hafasID\n    longName\n    \n    ## Alle Touren, die in dem angegebenen Zeitraum an der ausgewählten Haltestelle abfahren\n    journeys(startTime: $startTime  endTime: $endTime ) {\n      totalCount\n      elements {\n        ... on Journey {\n          id    # tourId\n          type  # passt nicht wirklich, STADTBUS und STADTBAHN\n          \n          line {\n            id  # lineId\n            \n            lineGroup {\n              label  # lineLabel\n              type   # scheint etwas zuverlässiger als obiger journey type zu sein\n            }\n          }\n          \n          ## Startzeitpunkt der Tour\n          # starts {\n              # isoString\n          # }\n          \n          ## Endzeitpunkt der Tour\n          # ends {\n             #  isoString\n          # }\n          \n          # stops(hafasID:\"2471\") {   # nur ein spezieller Stop der Tour\n          # alle Stops der Tour bekommen\n          stops {\n            # id   # ähnlich zu hafasId\n            station {\n                hafasID\n                longName\n            }\n            # destinationLabel\n            \n            plannedDeparture {\n             # date\n             # month\n              isoString\n            }\n            \n            realtimeDeparture {\n              isoString\n            }\n            \n            #plannedArrival {\n            #  isoString\n            #}\n            \n            #realtimeArrival {\n            #  isoString\n            #}\n          }\n        }\n      }\n    }\n  }\n}",
+						"variables": "{\n\t\"stationId\": \"1146\",\n\t\"startTime\": \"2019-11-28T07:39:00Z\",\n\t\"endTime\": \"2019-11-28T08:39:00Z\"\n}"
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		},
+		{
+			"name": "Verbindungsauskunft",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{bearerToken}}"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  trips(originGlobalID:\"de:08222:2471\" destinationGlobalID:\"de:08222:2417\" departureTime:\"2019-11-18T15:15:00Z\") {\n    startTime {\n      isoString\n    }\n    \n    endTime {\n      isoString\n    }\n    \n    interchanges\n    \n    legs {\n      \n      ... on InterchangeLeg {\n        mode\n        \n      }\n      \n      ... on TimedLeg {\n        board {\n          point {\n            ... on StopPoint {\n              ref\n            \tname\n            }\n          }\n          estimatedTime {\n            isoString\n          }\n          timetabledTime {\n            isoString\n          }\n        }\n        \n        alight {\n          point {\n            ... on StopPoint {\n              ref\n            \tname\n            }\n          }\n          \n          estimatedTime {\n            isoString\n          }\n          timetabledTime {\n            isoString\n          }\n          \n          \n        }\n        \n        service {\n          type\n          name\n          description\n          destinationLabel\n        }\n        \n        \n      }\n      \n      ... on ContinuousLeg {\n        mode\n      }\n    }\n  }\n\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		},
+		{
+			"name": "Alle Types / Felder bekommen",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "87ad2c27-a643-4846-9e14-0e98713e51be",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer {{bearerToken}}"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  __schema {\n    types {\n      name\n      kind\n      fields {\n        name\n        description\n      }\n    }\n  }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{hostname}}/",
+					"host": [
+						"{{hostname}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "Beispiel für eine Abfahrtsmonitorabfrage"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "5a8ab6c9-097a-4265-bfcb-28a6ff34a967",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "22d21ed5-2bb1-4ed6-9966-b68bbf7ef633",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
