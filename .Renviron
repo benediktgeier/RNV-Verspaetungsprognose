@@ -1,0 +1,6 @@
+CLIENT_ID = "9afe53a2-e50f-4635-9fe8-55379ec95cae"
+TENANT_ID = "87cd3c4f-1e0a-4350-889e-3969cd4616c9"
+CLIENT_SECRET = "394Z:i3gGQgyrdl@tvbI:Q/5rdHs=:ab"
+RESOURCE = "1484212f-edce-452a-aae9-46141bae91af"
+SCOPE = "https://rnv-dds-sandbox-graphqlextern.azurewebsites.net/user_impersonation"
+HOSTNAME = "https://graphql-sandbox-dds.rnv-online.de"
